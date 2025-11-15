@@ -26,12 +26,15 @@ url: "rswitzer.github.io" # the base hostname & protocol for your site, e.g. htt
 github_username:  rswitzer
 
 # Build settings
-remote_theme: pages-themes/hacker@v0.2.0
+theme: minima
 plugins:
   - jekyll-feed
-  - jekyll-remote-theme 
-  - repository:
-      - rswitzer/rswitzer.github.io
+#remote_theme: pages-themes/hacker@v0.2.0
+#plugins:
+#  - jekyll-feed
+#  - jekyll-remote-theme 
+#  - repository:
+#      - rswitzer/rswitzer.github.io
 
 # Exclude from processing.
 # The following items will not be processed, by default.
