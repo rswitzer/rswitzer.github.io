@@ -1,0 +1,34 @@
+// Placeholder to allow defining custom styles that override everything else.
+// (Use `_sass/minima/custom-variables.scss` to override variable defaults)
+.me_round_img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.about img{
+  height: 300px;
+  object-fit: cover;
+}
+
+.site-header {
+  display: flex;
+  padding-bottom: 10px;
+  background-image: url('/images/background.png');
+  background-color: #001331;
+  background-repeat: no-repeat;
+  background-position: left;
+  background-size: cover; // or `contain` if you prefer
+  background-size: 400px 100%;
+  background-image: linear-gradient(to right, rgba(0, 19, 49, 0), rgba(0, 19, 49, 1)), url('/images/background.png');
+}
+
+.site-footer{
+    background-color: #001331;
+}
+
+.site-title{
+  font-weight: bolder;
+}
