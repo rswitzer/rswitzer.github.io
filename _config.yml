@@ -22,7 +22,7 @@ title: The Architect Who Codes | Hands-on Development for Better Decision-Making
 description: >- # this means to ignore newlines until "baseurl:"
  The best architects are also the best engineers. This blog is my commitment to bridging the gap. I am dedicating time to hands-on upskilling with the modern tech stack, ensuring that every architectural decision I make is informed by current, real-world development experience. It's about enhancing my craft and delivering more practical, high-quality architectures. Sharing my journey to inspire others.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "rswitzer.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://rswitzer.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
 remote_theme: "jekyll/minima@bf9ef98"
