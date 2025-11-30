@@ -34,6 +34,9 @@ minima:
     - title: Rachel's LinkedIn
       icon: linkedin
       url: "https://www.linkedin.com/in/rachelswitzer/"
+    - title: Rachel's GitHub
+      icon: github
+      url: "https://github.com/rswitzer/"
 
 
 # Exclude from processing.

@@ -27,7 +27,7 @@ Rachel is a recognized leader known for mentoring and guiding high-performing on
 - Event-Driven Architectures
 
 ### DevOps, SRE & Platform Engineering
-- CI/CD (GitHub Actions, Azure DevOps, GitLab)
+- CI/CD
 - Release Management
 - Observability & Telemetry (Azure Monitor, App Insights, Splunk, OpenTelemetry)
 - Platform Reliability & Resilience Patterns

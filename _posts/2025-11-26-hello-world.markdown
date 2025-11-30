@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hello World! Rediscovering Hands-On Engineering: My Upskilling Journey"
-date:   2025-11-26 15:02:11 -0600
+date:   2025-11-26
 categories: 
 ---
 For the past three years, my career has revolved around technical project leadership. I’ve been in meetings, guiding engineers, and making architectural recommendations based largely on documentation. It’s the role many architects find themselves in—strategic, high-level, but increasingly disconnected from the hands-on work that originally drew us into technology.  
