@@ -1,0 +1,101 @@
+---
+layout: post
+title:  "Day 1 with Agentic AI: Bringing GPT-5.1 Codex + Copilot Into My Workflow"
+date:   2025-12-7
+categories: 
+---
+
+My client stakeholder recently asked for an overview of what it would take to bring **GPT-5.1 Codex** into their engineering organization, along with a clearer understanding of its capabilities. Instead of producing yet another slide deck, I decided to answer the question the way I approach real engineering work: by building something.
+
+And that’s how I ended up spending Day 1 of my upskilling project using **GitHub Copilot Pro**, **VS Code**, and **GPT-5.1-codex** to scaffold an actual application.
+
+As a crafter who makes jewelry ([Instagram](https://www.instagram.com/rachelswitzerjewelry/) and [Etsy](https://www.etsy.com/shop/rachelswitzerjewelry)), I’ve got a backlog of pieces waiting to be listed. So why not build something useful? One of my upcoming side projects is an app that takes in a photo and generates an SEO-optimized Etsy listing. Perfect playground. Perfect excuse to explore where software engineering is going with agentic AI.
+
+---
+
+## Why I’m Doing This Now
+
+I’ve spent the last few years operating at the architecture level, so I’m intentionally pulling myself closer to implementation again. I fully intended to start with Kubernetes work, but the timing of the client request plus the personal project opportunity made GPT-5.1 the right place to begin.
+
+To properly evaluate the tooling, I upgraded to **GitHub Copilot Pro for Individuals**. The free tier doesn’t include GPT-5.1-codex, and Pro comes with **300 premium requests** per month.
+
+A premium request is essentially a unit of consumption for advanced Copilot features. The quick summary:
+
+### How Premium Requests Are Calculated
+
+- **Base request unit:** 1 premium request  
+- Applies to things like:  
+  - Copilot Chat prompts  
+  - Copilot Code Reviews  
+  - Copilot Coding Agent tasks such as creating PRs  
+- A model multiplier is applied depending on which Copilot model is used, but GPT-5.1 Codex is the primary one I’m testing here.
+
+---
+
+## Starting the Experiment: Let’s Build Something
+
+My first instinct was to dive right into my Etsy listing generator idea. Codex generated a lot of code very quickly, but I couldn’t get the project running. That’s on me – this is a new laptop I haven’t fully configured for development yet.
+
+I realized that before evaluating Copilot as an engineering partner, I needed a known baseline. So I reset and started smaller.
+
+### Prompt 1:
+> “Create a .NET Core app with a health check page.”
+
+Great starting point. A predictable output. Easy to validate. And a chance to assess whether the code felt trustworthy.
+
+Copilot scaffolded a full application with multiple pages, including a weather endpoint I didn’t ask for. I prompted it to remove that. It did.
+
+I hit debug and boom: **healthy environment, healthy endpoint**.
+
+---
+
+## Refactoring Toward Best Practices
+
+Once I knew my dev environment was working, I asked Codex to take the next step.
+
+### Prompt 2:
+> “Refactor this into a production-ready .NET Core application.  
+> Keep only the health check endpoint.  
+> Add a placeholder API for `Listing Builder`.  
+> Add unit tests.  
+> Use best practices.”
+
+This is where the agentic behavior kicked in.
+
+It created new projects, reorganized folders, scaffolded tests, deleted unnecessary files, attempted builds, and prompted me to allow command-line execution to update the solution structure. I could *see* the AI thinking and iterating.
+
+When it finished, it produced a clean, professional-looking solution layout.
+
+I briefly reviewed the code. Everything made sense. It read like something a senior engineer would produce. The unit tests passed. The app built. The health endpoint ran.
+
+Now I have a solid foundation for the rest of the project.
+
+---
+
+## The Final Touch: GitIgnore and Initial Commit
+
+Before wrapping Day 1, I asked it to configure a proper `.gitignore`, then pushed the working scaffold to GitHub so I can pick this back up later in the week and begin building the UI, cleaning the code uo further and wiring up the backend.
+
+**[Commit here](https://github.com/rswitzer/etsy-ai-generator/commit/5611f7502298893d9956a8ff8af7dc4539f4affd)**  
+
+
+---
+
+## Early Takeaways After Day 1
+
+**1. Prompt-first development is real.**  
+The more intentional and incremental your prompts, the clearer and more predictable the output.
+
+**2. Reading code matters more than writing it.**  
+Copilot can generate astonishing amounts of code. Your value is increasingly in reviewing, shaping, and validating it.
+
+**3. Agentic workflows feel like pairing with a senior engineer.**  
+It scaffolds, refactors, reorganizes, builds, and tests – not just a text generator, but an active engineering partner.
+
+**4. The productivity boost is no joke.**  
+What normally takes 1–2 hours took **about 10 minutes**.
+
+I haven’t even touched the actual Etsy listing logic yet, but the foundation is there. And I can already see how this will reshape how engineers and architects build software.
+
+This was just **Day 1** with GPT-5.1 Codex in agent mode. I’m excited to see how far I can push it next.
+
