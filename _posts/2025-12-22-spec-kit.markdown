@@ -1,0 +1,82 @@
+---
+layout: post
+title:  "My First Project with GitHub Spec Kit and Spec-Driven Development"
+date:   2025-12-22
+categories: spec-kit
+---
+
+In my previous posts, I’ve touched on the "Iterative Approach" to AI development is a must. And, if you don't create guardrails, you get garbage. It is that simple. This is why I've moved toward **Spec-Driven Development (SDD)**—a methodology that enforces structure before a single line of code is written.
+
+Today, I’m putting this into practice using [GitHub Spec Kit](https://github.com/github/spec-kit) to build the foundation of my latest personal project.
+
+---
+
+## What is Spec-Driven Development?
+
+Spec-Driven Development is a workflow where the requirements (the "Spec") are the source of truth. Instead of asking an AI to "build an app," you use it to help you define a **Constitution**, a **Specification**, and a **Plan** as guardrails. Only then do you move to execution.
+
+GitHub Spec Kit is a relatively new framework (released in late 2024/early 2025) designed to streamline this within GitHub Copilot. For this session, I used **GitHub Copilot with GPT-5** for the "Architect" phase (drafting the specs) and switched to **Claude Opus 4.5** for the "Developer" phase (the execution).
+
+---
+
+## Phase 1: The Constitution
+
+In Spec Kit, the **Constitution** is the soul of your project. It defines your "laws"—tech stack, coding standards, and architectural constraints. It ensures the AI doesn't hallucinate a random library or a different language halfway through the build.
+
+I’m building a .NET 10 backend with a React/Tailwind frontend, targeting a Raspberry Pi 5 Kubernetes cluster. Here is the prompt I used to establish my rules:
+
+> **Prompt:** `/speckit.constitution I want to build consitution for my application using the following technologies. Frontend: React, Tailwind CSS, Playwright (E2E). Backend: .NET 10, xUnit + FluentAssertions, WebApplicationFactory (integration tests). Platform: Kubernetes, Docker (ARM64-compatible images), Raspberry Pi 5 (initial target). Portable to major cloud providers. CI/CD & Ops: GitHub Actions (self-hosted runner), Dependabot, OpenTelemetry, Prometheus + Grafana. Before ever pulling in new technology consult me first.`
+
+**The Result:**
+[constitution.md](https://github.com/rswitzer/etsy-optimizer/blob/bef4e399cfb166961ce99259f14709ec2505b7b0/specs/.specify/memory/constitution.md)
+
+---
+
+## Phase 2: The Specification
+
+With the laws set, I needed to **Specify**. I wanted a "Hello World" API—something small to validate my K8s infrastructure so I can hit the ground running when my Raspberry Pi's arrive later this wek.
+
+> **Prompt:** `/speckit.specify I want to build a simple hello world application that I can I use for deploying and validating my kubernents cluster, which will be built later on.`
+
+**The Result:**
+[hello-world.spec.md](https://github.com/rswitzer/etsy-optimizer/blob/bef4e399cfb166961ce99259f14709ec2505b7b0/specs/.specify/hello-world.spec.md)
+
+---
+
+## Phase 3: The Plan & Tasks
+
+If the Spec defines *what* must exist, the **Plan** defines *how* it will be built. Since I wanted to see how well the LLM handled the Spec Kit workflow, I let it take the lead on the roadmap.
+
+> **Prompt:** `/speckit.plan create a plan based of the constitution and spec.`
+
+This generated the execution roadmap under `hello-world-k8s-validation` folder. To make it actionable, I immediately followed up with:
+
+> **Prompt:** `/speckit.tasks create tasks`
+
+This produced a [tasks.md](https://github.com/rswitzer/etsy-optimizer/blob/bef4e399cfb166961ce99259f14709ec2505b7b0/specs/hello-world-k8s-validation/tasks.md) file—a checklist of manageable units of work that the AI (or a human) can follow to complete the feature.
+
+---
+
+## Phase 4: Execution with Claude Opus 4.5
+
+This is where I switched gears. While GPT-5 handled the architectural "thinking" beautifully, I wanted to see **Claude Opus 4.5** handle the "doing."
+
+> **Prompt:** `implement the tasks for this project`
+
+The magic of Spec Kit is that because the `tasks.md` and `constitution.md` were so well-defined, Claude didn't have to guess. It implemented the hello-world endpoints, set up the OpenTelemetry logging, and generated the Dockerfiles for ARM64 (Raspberry Pi) compatibility without a hitch.
+
+Before finishing, I realized I needed a `.gitignore` to keep things clean:
+
+> **Prompt:** `create a .gitignore based on this project and git best practices`
+
+---
+
+## Final Thoughts
+
+The entire session—from reading the Spec Kit docs to having a deployable, containerized .NET 10 app with full observability—took only **30 minutes**.
+
+I can't test the infrastructure on the actual Raspberry Pi 5s yet (they are still in transit), but the code is reviewed, test pass and the telemetry is validated. Later this week, I'll be automating the Pi setup with Ansible and a self-hosted GitHub runner. I will be able to test the rest out then. 
+
+**Full Session Commit:**
+[https://github.com/rswitzer/etsy-optimizer/commit/bef4e399cfb166961ce99259f14709ec2505b7b0](https://github.com/rswitzer/etsy-optimizer/commit/bef4e399cfb166961ce99259f14709ec2505b7b0)
+
