@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Back in Blog Mode (and Fresh off the GH-200)"
-date:   2025-12-22
+date:   2026-01-31
 categories: github
 
 ---
