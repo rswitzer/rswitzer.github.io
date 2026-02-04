@@ -345,7 +345,6 @@ The **4Cs** describe where security controls can be applied in a cloud-native sy
 * Privileged containers = escape risk
 * Resource limits prevent DoS
 
----
 
 ### Application Code Security
 
@@ -369,8 +368,6 @@ The **4Cs** describe where security controls can be applied in a cloud-native sy
 * Static tools miss zero-days
 * Runtime security is **detective**
 
----
-
 ### Secrets & Data Protection
 
 **Principles**
@@ -391,7 +388,6 @@ The **4Cs** describe where security controls can be applied in a cloud-native sy
 * Secrets ≠ environment variables
 * Kubernetes cannot protect leaked secrets
 
----
 
 ## Final High-Yield Exam Mapping
 
@@ -405,23 +401,3 @@ The **4Cs** describe where security controls can be applied in a cloud-native sy
 | IAM vs RBAC       | Who vs what         |
 | CIS benchmark     | Baseline hygiene    |
 
----
-
-## Final Mental Checklist (Before the Exam)
-
-* I can explain the **4Cs**
-* I know **who secures what**
-* I can classify **preventive vs detective**
-* I know **why isolation must be layered**
-* I understand **supply chain risk**
-* I know Kubernetes **cannot fix insecure code**
-
----
-
-If you want next, I can:
-
-* Compress this into a **1–2 page printable**
-* Generate **KCNA-style scenario questions**
-* Create a **last-24-hours rapid review sheet**
-
-Just say which one.
