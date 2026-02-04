@@ -8,12 +8,142 @@ Welcome to my KCSA Cram Sheet. I’m currently studying for the Kubernetes and C
 
 As of 2/1/2026, this is still a work in progress. I’ll continue expanding and refining it as I work through the remaining content and deepen my understanding.
 
-## Overview of Cloud Native Security
+---
 
-> **Exam rule**: You are tested on *what problem a tool solves*, not how to configure it.
+# KCNA Study Guide – Cloud Native Security
+
+> **Core mental model**
+> **Security failures cascade downward. Controls should stop attackers as early as possible.**
+> Kubernetes amplifies both good *and* bad security decisions.
+---
+
+## 1. The 4Cs of Cloud Native Security
+
+The **4Cs** describe where security controls can be applied in a cloud-native system, from the broadest surface area to the most specific.
+
+| Layer     | Focus                    | Key Idea                           |
+| --------- | ------------------------ | ---------------------------------- |
+| Cloud     | Provider infrastructure  | Stop attackers at the perimeter    |
+| Cluster   | Kubernetes control plane | Control access and configuration   |
+| Container | Images and runtime       | Reduce blast radius                |
+| Code      | Application logic        | Kubernetes can’t fix insecure code |
 
 
-## Cloud & Infrastructure Security (Cloud layer of 4Cs)
+### Cloud
+
+**Focus**: Where the cluster lives
+
+**Threats**
+
+* Public IP exposure
+* Open management ports (e.g., Docker 2375)
+* Flat or unsegmented networks
+
+**Controls**
+
+* Firewalls / Security Groups / NSGs
+* VPC / VNet isolation
+* Private endpoints and private clusters
+* Restricted ingress
+
+**Exam cues**
+
+* Port scanning = cloud-layer failure
+* Firewalls are **preventive**
+* If attackers can scan it, it’s already misconfigured
+
+### Cluster
+
+**Focus**: Kubernetes control plane and access
+
+**Threats**
+
+* Public API server or dashboard
+* No authentication or RBAC
+* Weak admission controls
+
+**Controls**
+
+* Kubernetes RBAC
+* Admission controllers
+* Audit logging
+* API server access restrictions
+
+**Exam cues**
+
+* Dashboard exposure = cluster issue
+* RBAC controls API actions, not network traffic
+* Admission happens **before pods run**
+
+### Container
+
+**Focus**: Images and runtime execution
+
+**Threats**
+
+* Untrusted images
+* `latest` tags
+* Privileged containers
+* Excess Linux capabilities
+
+**Controls**
+
+* Image scanning and signing
+* Trusted registries
+* seccomp, AppArmor, SELinux
+* Least privilege
+
+**Exam cues**
+
+* Privileged containers enable escape
+* Container security includes **supply chain + runtime**
+* Smaller images = smaller attack surface
+
+### Code
+
+**Focus**: Application logic and dependencies
+
+**Threats**
+
+* Hardcoded secrets
+* SQL injection
+* Vulnerable libraries
+
+**Controls**
+
+* Secure coding practices
+* SAST and dependency scanning
+* Secrets management
+* mTLS for service communication
+
+**Exam cues**
+
+* Kubernetes cannot fix insecure code
+* Secrets ≠ environment variables
+* Code is the final blast radius
+
+## 2. Cloud Provider and Infrastructure Security
+
+### Shared Responsibility Model (Highly Tested)
+
+**Cloud provider secures**
+
+* Physical data centers
+* Hardware
+* Underlying infrastructure
+
+**You secure**
+
+* Network configuration
+* IAM
+* Kubernetes clusters
+* Workloads, data, secrets
+
+> **Exam rule**
+> If you can configure it, you are responsible for securing it.
+
+
+### Network & Perimeter Security
 
 **Concepts**
 
@@ -21,267 +151,277 @@ As of 2/1/2026, this is still a work in progress. I’ll continue expanding and 
 * Perimeter protection
 * Infrastructure visibility
 
-**Supporting Technologies**
+**Technologies**
 
-* **VPC / VNet** (AWS, Azure, GCP)
-* **Security Groups / NSGs / Firewalls**
-* **Private Endpoints / Private Clusters**
-* **Cloud-native WAFs**
-* **Cloud provider logging**
-
-  * AWS CloudTrail
-  * Azure Monitor
-  * Google Cloud Logging
+* VPC / VNet
+* Firewalls, Security Groups, NSGs
+* Cloud-native WAFs
+* Private endpoints and private clusters
 
 **Exam cues**
 
-* These are **preventive + detective**
-* Misconfiguration is still your responsibility
+* These controls are **preventive**
+* Misconfiguration is still your fault
 
-## Identity & Access Management (IAM + Cluster)
 
-**Concepts**
+### Logging & Visibility
 
-* Least privilege
-* Strong identity boundaries
-* Human vs workload identity
+**Purpose**
 
-**Supporting Technologies**
+* Detect misuse
+* Support forensics
+* Enable incident response
 
-* **Cloud IAM** (AWS IAM, Azure AD, GCP IAM)
-* **Kubernetes RBAC**
-* **Service Accounts**
-* **OIDC integration** (IAM ↔ Kubernetes)
-* **MFA** (human access)
+**Technologies**
+
+* AWS CloudTrail
+* Azure Monitor
+* Google Cloud Logging
 
 **Exam cues**
 
-* IAM controls *who can access*
-* RBAC controls *what they can do*
-* Service accounts = workload identity
+* Logging is **detective**
+* Visibility does not prevent attacks
 
+## 3. Controls and Frameworks
 
-## Cluster Security & Admission Control
+### Control Types
 
-**Concepts**
+| Type       | Purpose         | Examples              |
+| ---------- | --------------- | --------------------- |
+| Preventive | Stop bad things | Firewalls, RBAC, PSA  |
+| Detective  | Find bad things | Logs, monitoring      |
+| Corrective | Respond         | Automated remediation |
+
+**Exam cue**
+
+* Know **why** a control exists, not how to configure it
+
+### Policy & Governance
+
+**Purpose**
 
 * Prevent unsafe configurations
-* Control access to the API server
+* Reduce human error
+* Enforce standards consistently
 
-**Supporting Technologies**
+**Technologies**
 
-* **Kubernetes API Server**
-* **Admission Controllers**
-
-  * Pod Security Admission (PSA)
-  * OPA Gatekeeper
-  * Kyverno
-* **Audit Logs**
+* Pod Security Admission (PSA)
+* OPA Gatekeeper
+* Kyverno
 
 **Exam cues**
 
-* Admission happens **before pods run**
-* Policies are **preventive**
-* Audit logs are **detective**
+* Policies act **before deployment**
+* Governance reduces drift
+* Automation > manual review
 
-## Container & Image Security (Supply Chain)
-
-**Concepts**
-
-* Trusted artifacts
-* Vulnerability prevention before runtime
-
-**Supporting Technologies**
-
-* **Image Scanners**
-
-  * Trivy
-  * Grype
-* **Private Registries**
-
-  * ECR, ACR, GCR
-  * Harbor, Artifactory
-* **Image Signing**
-
-  * Cosign
-  * Sigstore
-
-**Exam cues**
-
-* Scanning belongs in CI/CD
-* Registries are control points
-* Signing prevents tampering
-
-
-## Secure CI/CD Pipelines (Shift Left)
-
-**Concepts**
-
-* Early detection
-* Artifact integrity
-* Policy enforcement
-
-**Supporting Technologies**
-
-* **CI/CD Platforms**
-
-  * GitHub Actions
-  * GitLab CI
-  * Azure DevOps
-* **Policy-as-Code**
-
-  * OPA
-  * Kyverno
-* **SAST / Dependency Scanning**
-
-  * SonarQube
-  * Snyk
-
-**Exam cues**
-
-* CI/CD is a **security boundary**
-* Automation reduces human error
-* Supply chain attacks start here
-
-
-## Network Security & Zero Trust
-
-**Concepts**
-
-* Least privilege networking
-* East-west traffic control
-* No implicit trust
-
-**Supporting Technologies**
-
-* **Kubernetes Network Policies**
-
-  * Calico
-  * Cilium
-* **Service Mesh**
-
-  * Istio
-  * Linkerd
-* **mTLS**
-
-**Exam cues**
-
-* Network Policies control traffic paths
-* Service mesh secures service-to-service traffic
-* Zero Trust is a **model**, not a product
-
-## Secrets & Data Protection
-
-**Concepts**
-
-* Confidentiality
-* Secure secret injection
-* Encryption
-
-**Supporting Technologies**
-
-* **Kubernetes Secrets**
-* **External Secrets Operator**
-* **HashiCorp Vault**
-* **Cloud KMS**
-
-  * AWS KMS
-  * Azure Key Vault
-  * GCP KMS
-
-**Exam cues**
-
-* Secrets should not be baked into images
-* Encrypt at rest + in transit
-* Kubernetes cannot protect leaked secrets
-
-
-## Runtime Security & Threat Detection
-
-**Concepts**
-
-* Detect active exploitation
-* Monitor abnormal behavior
-
-**Supporting Technologies**
-
-* **Runtime Detection**
-
-  * Falco
-  * Tetragon
-  * Aqua Security
-* **Kernel Controls**
-
-  * seccomp
-  * AppArmor
-  * SELinux
-
-**Exam cues**
-
-* Runtime tools are **detective**
-* They catch zero-days
-* Containers share the host kernel
-
-## Logging, Monitoring & SIEM
-
-**Concepts**
-
-* Visibility
-* Incident detection
-* Forensics
-
-**Supporting Technologies**
-
-* **Log Aggregation**
-
-  * Fluentd
-  * Loki
-* **SIEM**
-
-  * Splunk
-  * Azure Sentinel
-  * AWS GuardDuty
-
-**Exam cues**
-
-* Logs ≠ prevention
-* SIEM correlates events
-* Required for incident response
-
-## Benchmarking, Compliance & Governance
+### Benchmarks & Compliance
 
 **Concepts**
 
 * Configuration hygiene
 * Baseline security posture
 
-**Supporting Technologies**
+**Technologies**
 
-* **CIS Benchmarks**
-* **kube-bench**
-* **Compliance frameworks**
-
-  * SOC 2
-  * ISO 27001
-  * PCI-DSS
-  * HIPAA
-  * NIST 800-53
+* CIS Kubernetes Benchmark
+* kube-bench
+* SOC 2, ISO 27001, PCI-DSS, HIPAA, NIST 800-53
 
 **Exam cues**
 
+* Compliance ≠ secure
 * Benchmarks detect misconfiguration
-* Compliance ≠ secure by default
-* Governance reduces drift
 
-## Ultra-High-Yield Exam Mapping (Memorize This)
+## 4. Isolation Techniques
+
+> **Isolation is layered. No single mechanism is sufficient.**
+
+### Isolation Layers
+
+| Layer              | Purpose                |
+| ------------------ | ---------------------- |
+| Namespaces         | Logical separation     |
+| RBAC               | API access control     |
+| Network Policies   | Traffic isolation      |
+| Admission Policies | Prevent unsafe configs |
+| Node Isolation     | Scheduling control     |
+| Kernel Controls    | Reduce blast radius    |
+
+**Exam cues**
+
+* Namespaces alone ≠ security boundary
+* Multi-tenancy requires multiple layers
+
+### Network Isolation
+
+**Controls**
+
+* Kubernetes Network Policies
+* Default-deny traffic models
+
+**Technologies**
+
+* Calico
+* Cilium
+
+**Exam cues**
+
+* Network Policies control **traffic paths**
+* They do not control identity
+
+### Service-to-Service Isolation
+
+**Purpose**
+
+* Secure east-west traffic
+* Prevent lateral movement
+
+**Technologies**
+
+* Service Mesh (Istio, Linkerd)
+* mTLS
+
+**Exam cues**
+
+* Service mesh secures service communication
+* Zero Trust is a **model**, not a product
+
+## 5. Artifact Repository and Image Security
+
+### Supply Chain Security
+
+**Common Failures**
+
+* Public images
+* `latest` tags
+* No scanning or signing
+
+**Concepts**
+
+* Images are build artifacts
+* Supply chain security starts early
+
+### Build-Time Controls (Shift Left)
+
+**Technologies**
+
+* Image scanners (Trivy, Grype)
+* Dependency scanning
+* Artifact signing (Cosign, Sigstore)
+
+**Exam cues**
+
+* Scanning belongs in CI/CD
+* Signing prevents tampering
+
+### Registries as Control Points
+
+**Technologies**
+
+* Private registries (ECR, ACR, GCR)
+* Harbor, Artifactory
+
+**Exam cues**
+
+* Registries are more than storage
+* Trust boundaries exist at pull time
+
+## 6. Workload and Application Code Security
+
+### Secure Workload Configuration
+
+**Best Practices**
+
+* Run as non-root
+* Drop unnecessary capabilities
+* Disallow privileged containers
+* Set CPU and memory limits
+
+**Exam cues**
+
+* Privileged containers = escape risk
+* Resource limits prevent DoS
+
+---
+
+### Application Code Security
+
+**Static Security**
+
+* SAST
+* Dependency scanning
+
+**Runtime Security**
+
+* Behavior-based detection
+* Detect unknown exploits
+
+**Technologies**
+
+* SonarQube, Snyk
+* Falco, Tetragon, Aqua Security
+
+**Exam cues**
+
+* Static tools miss zero-days
+* Runtime security is **detective**
+
+---
+
+### Secrets & Data Protection
+
+**Principles**
+
+* Inject secrets at runtime
+* Encrypt at rest and in transit
+* Never hardcode secrets
+
+**Technologies**
+
+* Kubernetes Secrets
+* External Secrets Operator
+* HashiCorp Vault
+* Cloud KMS (AWS KMS, Azure Key Vault, GCP KMS)
+
+**Exam cues**
+
+* Secrets ≠ environment variables
+* Kubernetes cannot protect leaked secrets
+
+---
+
+## Final High-Yield Exam Mapping
 
 | Question Mentions | Think               |
 | ----------------- | ------------------- |
 | Image scanning    | Supply chain        |
 | Admission policy  | Preventive control  |
 | Network Policy    | Traffic isolation   |
-| Service mesh      | mTLS / east-west    |
+| Service mesh      | East-west mTLS      |
 | Runtime detection | Zero-day visibility |
 | IAM vs RBAC       | Who vs what         |
 | CIS benchmark     | Baseline hygiene    |
 
+---
+
+## Final Mental Checklist (Before the Exam)
+
+* I can explain the **4Cs**
+* I know **who secures what**
+* I can classify **preventive vs detective**
+* I know **why isolation must be layered**
+* I understand **supply chain risk**
+* I know Kubernetes **cannot fix insecure code**
+
+---
+
+If you want next, I can:
+
+* Compress this into a **1–2 page printable**
+* Generate **KCNA-style scenario questions**
+* Create a **last-24-hours rapid review sheet**
+
+Just say which one.
