@@ -10,13 +10,6 @@ As of 2/1/2026, this is still a work in progress. I’ll continue expanding and 
 
 ## Overview of Cloud Native Security
 
-Perfect. I’ll add **technology examples as support signals**, not as memorization targets. This keeps it **KCSA-safe**: recognize the tool → map to the concept → answer the question.
-
-Below is an **additive section** you can append to the cram sheet, plus light inline callouts you can mentally associate during the exam.
-
-
-# Supporting Technologies by Security Concept (KCSA-Oriented)
-
 > **Exam rule**: You are tested on *what problem a tool solves*, not how to configure it.
 
 
