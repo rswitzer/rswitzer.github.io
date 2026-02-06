@@ -401,3 +401,445 @@ The **4Cs** describe where security controls can be applied in a cloud-native sy
 | IAM vs RBAC       | Who vs what         |
 | CIS benchmark     | Baseline hygiene    |
 
+---
+
+# Kubernetes Cluster Component Security
+
+
+## API Server
+
+### Security Responsibilities
+
+The API Server is the **front door** to the cluster. If it is compromised, the cluster is compromised.
+
+### Key Controls
+
+**Authentication & Authorization**
+
+* RBAC enforces least privilege
+* OIDC or webhook auth integrates external IdPs
+* Service Accounts scoped tightly to workloads
+* Disable anonymous access (`--anonymous-auth=false`)
+
+**Secure API Access**
+
+* Restrict API exposure via firewalls / security groups
+* Network Policies do *not* protect the API server directly (important exam distinction)
+* Enable audit logging for all requests
+
+**Encryption & Data Protection**
+
+* TLS for all API communication
+* Encrypt secrets at rest in etcd
+* Rotate API server certificates regularly
+
+**Abuse & DoS Protection**
+
+* API rate limiting / request throttling
+* Admission Controllers enforce policy before persistence
+
+**Hardening**
+
+* Disable unused flags and endpoints
+* Limit `kubectl exec` / `kubectl proxy` via RBAC
+* Patch control plane regularly
+
+### Technologies
+
+RBAC, OIDC, Admission Controllers, Audit Logs, TLS, etcd encryption
+
+## Controller Manager
+
+### Security Responsibilities
+
+Maintains **desired state** (replicas, nodes, namespaces, service accounts). Over-permissioning = privilege escalation risk.
+
+### Key Controls
+
+**Access Control**
+
+* Dedicated Service Account
+* RBAC scoped to only required controllers
+* Disable unused controllers (`--controllers=`)
+
+**Isolation**
+
+* Run on **dedicated control plane nodes**
+* Protect configuration files
+* Least privilege execution
+
+**Secure Communication**
+
+* TLS between Controller Manager, API Server, and etcd
+* Certificate rotation
+
+**Monitoring & Auditing**
+
+* Enable audit logs
+* Monitor `/metrics`
+* Alert on abnormal reconciliation behavior
+
+**Availability**
+
+* Multiple replicas
+* Leader election enabled
+
+### Technologies
+
+RBAC, TLS, Audit Logs, Prometheus, Leader Election
+
+
+## Scheduler
+
+### Security Responsibilities
+
+Decides **where workloads run**. Manipulation can cause denial of service or workload exposure.
+
+### Key Controls
+
+**Access Control**
+
+* RBAC limiting scheduling permissions
+* Dedicated Service Account
+* Disable anonymous auth
+
+**Secure Communication**
+
+* TLS everywhere
+* Certificate rotation
+
+**Hardening**
+
+* Patch regularly
+* Secure config files
+* Disable unused flags
+
+**Monitoring**
+
+* Audit scheduling decisions
+* Monitor scheduler metrics
+
+**High Availability**
+
+* Multiple schedulers
+* Leader election
+
+### Technologies
+
+RBAC, TLS, Prometheus, Audit Logs, Leader Election
+
+
+## Kubelet
+
+### Security Responsibilities
+
+Node-level authority. **High-value target** because it interacts with containers directly.
+
+### Key Controls
+
+**Authentication & Authorization**
+
+* Disable anonymous access
+* Webhook authorization (`--authorization-mode=Webhook`)
+* Client certificate authentication
+* TLS enforced
+
+**Hardening**
+
+* Restrict Kubelet API access
+* Protect kernel defaults
+* Disable legacy features
+
+**Runtime Security**
+
+* Disallow privileged containers
+* Enforce seccomp, AppArmor, SELinux
+* Use stronger isolation runtimes (gVisor, Kata)
+
+**Monitoring**
+
+* Audit logging
+* `/metrics` endpoint monitoring
+* Runtime threat detection
+
+**Node Isolation**
+
+* NodeRestriction Admission Controller
+* Run Kubelet with least privilege
+* Regular updates
+
+### Technologies
+
+seccomp, AppArmor, SELinux, Falco, gVisor, Kata Containers
+
+## Container Runtime
+
+### Security Responsibilities
+
+Isolation boundary between workload and host.
+
+### Key Controls
+
+**Runtime Choice**
+
+* Use containerd or CRI-O (Docker deprecated)
+* Follow runtime-specific hardening guidance
+
+**Patch Management**
+
+* Regular updates to address CVEs
+* Known risks: Dirty COW, runc breakout, container escapes
+
+**Least Privilege**
+
+* Run containers as non-root
+* Read-only root filesystems
+* Resource limits prevent DoS
+
+**Mandatory Access Controls**
+
+* SELinux
+* AppArmor
+
+**Monitoring**
+
+* Centralized logging
+* Runtime behavior monitoring
+* Audit logs for forensics
+
+### Technologies
+
+containerd, CRI-O, SELinux, AppArmor, Prometheus, Fluentd
+
+
+## KubeProxy
+
+### Security Responsibilities
+
+Manages **network rules**. Misconfiguration can expose internal services.
+
+### Key Controls
+
+**Config File Security**
+
+* Secure kubeconfig permissions (≤644)
+* Ownership `root:root`
+* Protect service account tokens
+
+**Secure Communication**
+
+* TLS to API Server
+* CA validation
+* Service Account authentication
+
+**Network Controls**
+
+* iptables or eBPF mode
+* Enforce Network Policies
+* Monitor traffic flows
+
+**Auditing & Updates**
+
+* Enable audit logging
+* Patch regularly
+
+**Availability**
+
+* Run as DaemonSet
+
+### Technologies
+
+iptables, eBPF, RBAC, TLS, Prometheus, Cilium
+
+
+## Pod
+
+### Security Responsibilities
+
+Primary workload boundary.
+
+### Key Controls
+
+**Pod Security**
+
+* Pod Security Standards (Baseline / Restricted / Privileged)
+* Pod Security Admission
+* Non-root execution
+* Drop Linux capabilities
+* Prevent privilege escalation
+
+**Network Security**
+
+* Network Policies
+* Service Mesh mTLS
+* Restrict egress
+
+**Runtime Monitoring**
+
+* seccomp / AppArmor / SELinux
+* Falco, Tetragon
+* Restrict `kubectl exec`
+
+**Secrets & Storage**
+
+* Secrets, not env vars
+* Read-only mounts
+* Encrypt secrets at rest
+
+**Availability**
+
+* Requests & limits
+* Probes
+* Pod Disruption Budgets
+
+### Technologies
+
+PSA, PSS, Network Policies, Istio, Falco
+
+
+## Etcd
+
+### Security Responsibilities
+
+**Source of truth**. Full cluster compromise if exposed.
+
+### Key Controls
+
+**Encryption**
+
+* TLS in transit
+* Encryption at rest (AES-CBC / KMS providers)
+
+**Access Control**
+
+* Client cert authentication
+* Network isolation
+* No public exposure
+
+**Backups**
+
+* Regular snapshots
+* Secure storage
+* Restore testing
+
+**Monitoring**
+
+* Latency, disk I/O, quorum health
+* Regular patching
+
+### Technologies
+
+TLS, AES-CBC, KMS, etcdctl
+
+
+## Container Networking
+
+### Security Responsibilities
+
+Flat network = powerful but dangerous without controls.
+
+### Key Controls
+
+**Network Policies**
+
+* Default deny
+* Explicit allow rules
+* Namespace isolation
+
+**Traffic Encryption**
+
+* mTLS via service mesh
+* IPsec / WireGuard at CNI layer
+
+**Workload Isolation**
+
+* Namespaces
+* Segmentation to reduce blast radius
+
+**Ingress Protection**
+
+* Secure ingress controllers
+* TLS termination
+
+### Technologies
+
+Calico, Cilium, Istio, Linkerd, IPsec, WireGuard
+
+
+## Client Security
+
+### Security Responsibilities
+
+Protects **humans and automation** accessing the cluster.
+
+### Key Controls
+
+**Authentication**
+
+* OIDC with external IdPs
+* Service Accounts for workloads
+
+**Authorization**
+
+* RBAC scoped by role
+* No shared admin credentials
+
+**Secure Communication**
+
+* TLS and mTLS
+* API auditing
+
+**Credential Hygiene**
+
+* Short-lived tokens
+* Secrets, not config files
+* Token rotation
+
+### Technologies
+
+RBAC, OIDC, TLS, Audit Logs
+
+
+## Storage
+
+### Security Responsibilities
+
+Persistent data protection.
+
+### Key Controls
+
+**Access Control**
+
+* RBAC for PVs/PVCs
+* Namespace scoping
+* Read-only mounts
+
+**Encryption**
+
+* At rest via StorageClasses
+* In transit via TLS
+* Cloud provider disk encryption
+
+**Provisioning**
+
+* Use PVCs (not direct PVs)
+* Dynamic provisioning
+* Standardized StorageClasses
+
+**Backups & DR**
+
+* Automated backups
+* Tested restores
+* Disaster recovery tooling
+
+**Monitoring**
+
+* Storage access auditing
+* Usage anomaly detection
+
+### Technologies
+
+PVCs, StorageClasses, KMS, Velero, Prometheus
+
+
+
