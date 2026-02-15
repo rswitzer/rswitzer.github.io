@@ -10,6 +10,19 @@ As of 2/1/2026, this is still a work in progress. I’ll continue expanding and 
 
 ---
 
+# Study Materials Used: 
+## Courses 
+- [KodeKloud — Kubernetes and Cloud Native Security Associate (KCSA)](https://learn.kodekloud.com/user/courses/kubernetes-and-cloud-native-security-associate-kcsa)
+- [Udemy — Kubernetes & Cloud Security Associate (KCSA) with practice tests](https://www.udemy.com/course/kubernetes-cloud-security-associate-kcsa-with-practice-tests)
+
+
+## Additional Reading 
+- [NSA/CISA: Kubernetes Hardening Guidance](https://www.nsa.gov/Press-Room/News-Highlights/Article/Article/2716980/nsa-cisa-release-kubernetes-hardening-guidance/)
+- [CloudSecDocs — Kubernetes Threat Model](https://cloudsecdocs.com/containers/theory/threats/k8s_threat_model/)
+- [Kubernetes: Concepts — Security](https://kubernetes.io/docs/concepts/security/)
+
+---
+
 # KCNA Study Guide – Cloud Native Security
 
 > **Core mental model**
@@ -841,5 +854,580 @@ Persistent data protection.
 
 PVCs, StorageClasses, KMS, Velero, Prometheus
 
+---
 
+# Kubernetes Security Fundamentals 
+
+
+## Pod Security Standards (PSS)
+
+**Purpose:** Define allowed security posture of Pods (replaces legacy PSP model conceptually).
+
+### Policy Levels
+
+| Level          | Security Goal                        | Typical Use               |
+| -------------- | ------------------------------------ | ------------------------- |
+| **Privileged** | No restrictions                      | System components only    |
+| **Baseline**   | Prevent obvious privilege escalation | Most workloads            |
+| **Restricted** | Strict hardening                     | Production / multi-tenant |
+
+### Key Controls Enforced
+
+* Prevent privileged containers
+* Require non-root user
+* Restrict Linux capabilities
+* Block host namespaces
+* Restrict hostPath mounts
+* Enforce seccomp / SELinux / AppArmor profiles
+
+### Exam Notes
+
+* Restricted = “secure by default”
+* Baseline = “safe defaults”
+* Privileged = essentially no security
+* PSS is policy definition, **PSA is enforcement**
+
+
+## Pod Security Admission (PSA)
+
+**Built-in admission controller enforcing PSS at namespace level**
+
+Replaces PodSecurityPolicy.
+
+### Enforcement Modes
+
+| Mode        | Behavior       |
+| ----------- | -------------- |
+| **Enforce** | Block pod      |
+| **Audit**   | Log violation  |
+| **Warn**    | Allow but warn |
+
+### Namespace Labels
+
+```
+pod-security.kubernetes.io/enforce=restricted
+pod-security.kubernetes.io/audit=baseline
+pod-security.kubernetes.io/warn=baseline
+```
+
+### What It Evaluates
+
+* securityContext
+* capabilities
+* host networking
+* privileged flag
+* root user
+
+### Key Exam Points
+
+* Namespace scoped
+* Policy applied during admission
+* Supports gradual rollout (audit → warn → enforce)
+
+## Authentication
+
+**Who are you?**
+
+Kubernetes API & kubelet both authenticate requests.
+
+### Kubelet Authentication (Important exam detail)
+
+* Default: anonymous allowed ❌
+* Disable: `anonymous-auth=false`
+* Supported methods:
+
+  * X509 client certificates
+  * Bearer tokens
+
+Kubelet must trust API server using CA bundle .
+
+### Cluster Authentication Methods
+
+| Method            | Use                    |
+| ----------------- | ---------------------- |
+| X509 Certificates | Most common            |
+| Bearer Tokens     | Service accounts       |
+| OIDC              | External IdP           |
+| Webhook           | External auth provider |
+
+### Kubeconfig
+
+Contains:
+
+* clusters
+* users
+* contexts
+
+kubectl uses this for authentication .
+
+## Authorization
+
+**What are you allowed to do?**
+
+### Mechanisms
+
+| Type               | Description            |
+| ------------------ | ---------------------- |
+| RBAC               | Primary method         |
+| ABAC               | Legacy                 |
+| Webhook            | External policy        |
+| Node Authorization | Kubelet limited access |
+
+### RBAC Objects
+
+| Object             | Scope               |
+| ------------------ | ------------------- |
+| Role               | Namespace           |
+| ClusterRole        | Cluster             |
+| RoleBinding        | Assign role         |
+| ClusterRoleBinding | Assign cluster role |
+
+### Kubelet Authorization
+
+Default: **AlwaysAllow (insecure)**
+Secure mode: `authorization-mode=Webhook` 
+
+## Secrets
+
+Store sensitive data securely.
+
+### Types
+
+| Type            | Purpose            |
+| --------------- | ------------------ |
+| Opaque          | Generic            |
+| ServiceAccount  | Pod authentication |
+| docker-registry | Pull images        |
+| TLS             | Certificates       |
+
+### Usage
+
+* Environment variables
+* Mounted volumes
+
+### Security Facts
+
+* Base64 encoded (NOT encrypted by default)
+* Encrypt at rest recommended
+* Protect via RBAC
+
+### Best Practices
+
+* External secret manager (Vault, cloud)
+* Rotate regularly
+* Avoid committing to Git
+
+## Isolation and Segmentation
+
+Reduce blast radius.
+
+### Layers of Isolation
+
+| Layer     | Mechanism                    |
+| --------- | ---------------------------- |
+| Workload  | securityContext              |
+| Namespace | Logical boundary             |
+| Node      | Taints / tolerations         |
+| Network   | NetworkPolicy                |
+| Kernel    | seccomp / SELinux / AppArmor |
+
+### Kubernetes Mechanisms
+
+* Namespaces separate resources
+* Node pools isolate workloads
+* Resource quotas prevent starvation
+* Dedicated service accounts
+
+## Audit Logging
+
+Records **who did what and when**
+
+### What It Tracks
+
+* API calls
+* User identity
+* Source IP
+* Resource accessed
+
+### Storage Targets
+
+* Files
+* SIEM
+* Elasticsearch / Loki
+
+### Monitoring Tools
+
+| Tool                  | Purpose                  |
+| --------------------- | ------------------------ |
+| Prometheus            | Metrics                  |
+| Grafana               | Visualization            |
+| Falco                 | Runtime threat detection |
+| ELK                   | Logging                  |
+| Cloud Security Center | Managed detection        |
+
+### Best Practices
+
+* Enable audit policy
+* Immutable storage
+* Alerting on anomalies
+
+## Network Policy
+
+Controls pod-to-pod communication.
+
+Default: **allow all**
+
+### Core Concepts
+
+| Field       | Purpose          |
+| ----------- | ---------------- |
+| podSelector | Target pods      |
+| policyTypes | Ingress / Egress |
+| ingress     | Incoming rules   |
+| egress      | Outgoing rules   |
+
+### Example
+
+Allow only frontend → backend
+
+```yaml
+kind: NetworkPolicy
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+```
+
+### Enforcement Requires CNI
+
+Examples:
+
+* Calico
+* Cilium
+
+# Rapid Exam Memory Map
+
+**Identity**
+
+* Authentication = who
+* Authorization = permissions
+
+**Pod Hardening**
+
+* PSS defines
+* PSA enforces
+
+**Data Protection**
+
+* Secrets
+* Encryption at rest
+
+**Blast Radius**
+
+* Namespaces
+* NetworkPolicy
+* Kernel isolation
+
+**Detection**
+
+* Audit logs
+* Falco
+
+
+---
+
+# Kubernetes Threat Model
+
+
+## 1) Kubernetes Trust Boundaries and Data Flow
+
+### Core Idea
+
+A Kubernetes cluster is not one security zone.
+It is a **layered set of trust boundaries**.
+Security failures usually occur when attackers cross boundaries.
+
+
+### Trust Boundaries (Isolation Layers)
+
+| Boundary  | What it Separates      | Security Purpose                  |
+| --------- | ---------------------- | --------------------------------- |
+| Cluster   | Prod vs Dev vs Staging | Prevent environment contamination |
+| Node      | Workloads across nodes | Stop lateral movement             |
+| Namespace | Application tiers      | Authorization scope               |
+| Pod       | App runtime            | Runtime isolation                 |
+| Container | Process space          | Smallest blast radius             |
+
+**Key exam concept:**
+Every boundary crossed = privilege gain.
+
+
+### Supporting Security Controls
+
+* RBAC
+* NetworkPolicies
+* SecurityContext
+* Pod Security Admission
+* Separate clusters per environment
+
+### Data Flow (Typical Path)
+
+User → Ingress → Frontend Pod → Backend Pod → Database Pod
+
+Security requirements at each hop:
+
+| Hop                | Required Protection          |
+| ------------------ | ---------------------------- |
+| External → Ingress | TLS, Auth                    |
+| Frontend → Backend | Service authentication       |
+| Backend → DB       | Encryption + least privilege |
+| Pod ↔ Pod          | NetworkPolicy restrictions   |
+
+**Exam concept:**
+Map communication paths to find attack opportunities.
+
+### Threat Implications
+
+* Lateral movement
+* Unauthorized API calls
+* Secret exposure
+* Data exfiltration
+
+
+## 2) Persistence
+
+### Core Idea
+
+Persistence = attacker survives restarts, reschedules, or rebuilds.
+
+
+### Levels of Persistence
+
+| Level                 | Survives                         |
+| --------------------- | -------------------------------- |
+| No resilience         | Container restart kills attacker |
+| Container persistence | Restart survives                 |
+| Pod persistence       | Pod recreate survives            |
+| Node persistence      | Node reboot survives             |
+| Cluster persistence   | etcd restore survives            |
+
+### Common Techniques
+
+| Technique               | What Attacker Does        |
+| ----------------------- | ------------------------- |
+| Modify config on volume | Survives restart          |
+| Cron/init job           | Host execution            |
+| Privileged container    | Host compromise           |
+| API server access       | Permanent cluster control |
+| etcd modification       | Total compromise          |
+
+
+### Key Kubernetes Targets
+
+* etcd
+* API Server certificates
+* Service Account tokens
+* Host filesystem
+* Mounted docker socket
+
+
+### Mitigations
+
+| Control                  | Purpose                  |
+| ------------------------ | ------------------------ |
+| Least-privilege RBAC     | Prevent secret access    |
+| Read-only root FS        | Stop tampering           |
+| No privileged containers | Block host access        |
+| Secret isolation         | Prevent credential theft |
+| Monitoring & auditing    | Detect footholds         |
+| Patch images             | Remove exploit vectors   |
+
+
+## 3) Denial of Service (DoS)
+
+### Core Idea
+
+Goal = make cluster unavailable.
+
+
+### Major DoS Categories
+
+| Category                 | Target                |
+| ------------------------ | --------------------- |
+| Resource exhaustion      | CPU/memory/storage    |
+| Control plane disruption | API server, scheduler |
+| Network disruption       | DNS, CNI              |
+| Autoscaling abuse        | Infinite scaling      |
+
+
+### Attack Techniques
+
+| Attack           | Effect                         |
+| ---------------- | ------------------------------ |
+| Create many pods | Resource starvation            |
+| Autoscale flood  | Financial + compute exhaustion |
+| Flood API server | Cluster freeze                 |
+| Overload etcd    | State failure                  |
+| Kill kubelet     | Remove nodes                   |
+| Break DNS        | Service outage                 |
+
+
+### Mitigations
+
+| Control                         | Why                     |
+| ------------------------------- | ----------------------- |
+| ResourceQuota                   | Contain blast radius    |
+| LimitRange                      | Cap container usage     |
+| NetworkPolicy                   | Block flooding          |
+| Firewall                        | Protect control plane   |
+| Secure service accounts         | Stop pod creation abuse |
+| Monitoring (Prometheus/Grafana) | Detect spikes           |
+
+## 4) Malicious Code Execution & Compromised Applications
+
+### Core Idea
+
+Attacker executes code inside container → expands control.
+
+
+### Entry Points
+
+| Method         | Example             |
+| -------------- | ------------------- |
+| Vulnerable app | RCE exploit         |
+| Poisoned image | Supply chain attack |
+| API exec       | kubectl exec abuse  |
+| Host mount     | Escape container    |
+
+
+### Techniques
+
+| Technique                  | Result            |
+| -------------------------- | ----------------- |
+| Download tools (curl/wget) | Load malware      |
+| Docker socket access       | Host control      |
+| HostPID enabled            | Process hijack    |
+| SYS_PTRACE                 | Inspect processes |
+| Image repo poisoning       | Mass compromise   |
+
+### Mitigations
+
+| Control             | Purpose                  |
+| ------------------- | ------------------------ |
+| Image scanning      | Remove vulnerable images |
+| Signed images       | Prevent tampering        |
+| Restrict API server | Stop exec abuse          |
+| Remove host mounts  | Prevent escape           |
+| Monitoring          | Detect command execution |
+
+
+## 5) Attacker on the Network
+
+### Core Idea
+
+Attacker has network access but not cluster credentials.
+
+### Network Attacks
+
+| Attack           | Description          |
+| ---------------- | -------------------- |
+| MITM             | Intercept traffic    |
+| Packet sniffing  | Capture secrets      |
+| DNS spoofing     | Redirect services    |
+| ARP spoofing     | Traffic interception |
+| API flooding     | Control plane DoS    |
+| Lateral movement | Reach adjacent pods  |
+
+
+### Kubernetes Weak Points
+
+* Exposed API server
+* Weak NetworkPolicies
+* Unencrypted traffic
+* Open node ports
+
+### Mitigations
+
+| Control             | Protection    |
+| ------------------- | ------------- |
+| TLS everywhere      | Stop sniffing |
+| NetworkPolicies     | Contain pods  |
+| Firewall rules      | Protect API   |
+| mTLS / service mesh | Pod identity  |
+
+## 6) Access to Sensitive Data
+
+### Targets
+
+| Location           | Example Data         |
+| ------------------ | -------------------- |
+| Secrets            | DB credentials       |
+| Logs               | Tokens               |
+| etcd               | Entire cluster state |
+| Persistent Volumes | User data            |
+| Network traffic    | Credentials          |
+
+
+### Attack Methods
+
+| Method           | Description         |
+| ---------------- | ------------------- |
+| RBAC misconfig   | Read secrets        |
+| Log scraping     | Extract tokens      |
+| Volume mounting  | Read DB files       |
+| Network sniffing | Capture credentials |
+| PKI compromise   | Decrypt cluster     |
+
+
+### Mitigations
+
+| Control           | Purpose          |
+| ----------------- | ---------------- |
+| Proper RBAC       | Limit read       |
+| Encrypt etcd      | Protect state    |
+| TLS communication | Protect transit  |
+| Log sanitization  | Prevent leakage  |
+| Secret isolation  | Prevent exposure |
+
+## 7) Privilege Escalation
+
+### Core Idea
+
+Gain higher permissions than intended.
+
+### Common Escalation Paths
+
+| Method                 | Example              |
+| ---------------------- | -------------------- |
+| Over-permissive RBAC   | Admin access         |
+| Privileged containers  | Host root            |
+| Service account token  | API takeover         |
+| Host filesystem mounts | Node control         |
+| Master node workloads  | Control plane access |
+
+### Preventive Controls
+
+| Control                        | Why                   |
+| ------------------------------ | --------------------- |
+| allowPrivilegeEscalation=false | Block elevation       |
+| Drop capabilities              | Reduce attack surface |
+| Least privilege RBAC           | Limit damage          |
+| Avoid privileged pods          | Protect host          |
+| Audit RBAC                     | Detect risks          |
+
+
+# Exam Memory Trick
+
+Think in attacker progression:
+
+**Network → Container → Pod → Node → Control Plane → Data**
+
+Every KCSA question typically asks:
+
+> “Which boundary failed?”
 
