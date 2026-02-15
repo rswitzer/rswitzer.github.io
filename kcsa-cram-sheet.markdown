@@ -13,6 +13,7 @@ As of 2/1/2026, this is still a work in progress. I’ll continue expanding and 
 # Study Materials Used: 
 ## Courses 
 - [KodeKloud — Kubernetes and Cloud Native Security Associate (KCSA)](https://learn.kodekloud.com/user/courses/kubernetes-and-cloud-native-security-associate-kcsa)
+- [LinkedIn Learning — Kubernetes and Cloud Native Security Associate (KCSA): Supply Chain Security](https://www.linkedin.com/learning/kubernetes-and-cloud-native-security-associate-kcsa-cert-prep/supply-chain-security)
 - [Udemy — Kubernetes & Cloud Security Associate (KCSA) with practice tests](https://www.udemy.com/course/kubernetes-cloud-security-associate-kcsa-with-practice-tests)
 
 
