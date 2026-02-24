@@ -1432,3 +1432,705 @@ Every KCSA question typically asks:
 
 > “Which boundary failed?”
 
+---
+
+# Platform Security
+
+Platform security focuses on securing the Kubernetes control plane, worker nodes, and cluster configuration.
+
+## Control Plane Hardening
+
+From CIS Benchmarks (covered in your material ):
+
+* Secure configuration of:
+
+  * kube-apiserver
+  * etcd
+  * kube-controller-manager
+  * kube-scheduler
+  * kubelet
+* Enable audit logging
+* Protect etcd with TLS
+* Disable anonymous authentication
+* Enable RBAC
+
+### CIS Benchmark Areas
+
+* Authentication & Authorization
+* Logging & Monitoring
+* Network Policies
+* Pod Security
+* Component configuration validation
+
+Tool:
+
+* `kube-bench` validates CIS compliance
+
+
+## Threat Modeling Integration
+
+### STRIDE
+
+Used to identify threat categories:
+
+* **Spoofing** → Use MFA, strong authentication
+* **Tampering** → Encryption, integrity validation
+* **Repudiation** → Audit logs, digital signatures
+* **Information Disclosure** → Encryption at rest & in transit
+* **Denial of Service** → Resource quotas, rate limiting
+* **Elevation of Privilege** → Strict RBAC
+
+### MITRE ATT&CK (Kubernetes Focus)
+
+Tactics include:
+
+* Initial Access
+* Execution
+* Persistence
+* Privilege Escalation
+* Defense Evasion
+
+Use this to map threats to mitigations.
+
+
+## 2. Supply Chain Security
+
+Supply chain security protects everything from code commit to deployed container.
+
+
+### Artifacts
+
+Outputs of build process:
+
+* Container images
+* Binaries
+* Tarballs
+
+Best Practices:
+
+* Sign artifacts using **Cosign (Sigstore)**
+* Verify signatures before deployment
+
+
+### Metadata
+
+Includes:
+
+* SBOM (Software Bill of Materials)
+* Version info
+* Dependencies
+
+SBOM:
+
+* Lists components and libraries
+* Generated with tools like **Syft**
+* Signed for authenticity
+
+
+### Attestations
+
+Signed statements verifying:
+
+* SBOM accuracy
+* Provenance
+* Vulnerability scans
+
+Tools:
+
+* Cosign verify-attestation
+* in-toto framework
+
+Difference:
+
+* Checksum → ensures file integrity in transit
+* Attestation → ensures trusted origin
+
+
+### Policies
+
+Enforced at deployment time.
+
+Examples:
+
+* Image must be signed
+* No critical vulnerabilities
+* Valid SBOM required
+
+Enforcement:
+
+* Sigstore policy-controller
+* Admission controllers
+
+
+### Supply Chain Best Practices
+
+* Implement RBAC across pipeline
+* Scan images regularly
+* Enforce image signing
+* Monitor audit logs
+* Use immutable image tags
+
+Frameworks:
+
+* Sigstore
+* Notary
+* Grafeas
+* in-toto
+
+
+## 3. Image Repository Security
+
+Container registries must be secured.
+
+### Risks
+
+* Malicious images
+* Tampered images
+* Public image poisoning
+* Credential leakage
+
+
+### Best Practices
+
+### Use Trusted Registries
+
+* Private registry preferred
+* Scan images regularly
+
+### Enforce Image Signing
+
+* Require Cosign signatures
+
+### Use Kubernetes Secrets
+
+* Store registry credentials securely
+
+### Immutable Tags
+
+* Avoid `latest`
+* Enforce tag immutability
+
+### Restrict Access
+
+* RBAC for push/pull permissions
+
+## 4. Observability
+
+Observability = Logs + Metrics + Traces
+
+From your material :
+
+### Metrics
+
+* CPU
+* Memory
+* Latency
+* Pod health
+
+### Logs
+
+* Application logs
+* Audit logs
+* Control plane logs
+
+### Traces
+
+* Request flow across services
+
+
+### Security Use Cases
+
+* Detect privilege escalation
+* Detect unusual API calls
+* Identify lateral movement
+* Detect DoS attacks
+
+
+### Best Practices
+
+* Centralized logging
+* Enable audit logging
+* Distributed tracing
+* Resource monitoring
+* Alerting on abnormal behavior
+
+
+## 5. Service Mesh
+
+A service mesh manages service-to-service communication.
+
+### Key Features
+
+* Traffic management
+* mTLS encryption
+* Observability
+* Policy enforcement
+
+
+### Security Benefits
+
+### Mutual TLS (mTLS)
+
+* Encrypts service communication
+* Ensures service identity
+
+### Zero Trust Networking
+
+* Verify every connection
+
+### Fine-grained Authorization
+
+* Service-level RBAC
+
+
+### Popular Implementations
+
+* Istio
+* Linkerd
+* Consul Connect
+* NGINX Service Mesh
+
+
+## 6. PKI (Public Key Infrastructure)
+
+PKI secures communication within Kubernetes.
+
+### What PKI Secures
+
+* API server ↔ kubelet
+* API server ↔ etcd
+* etcd peer communication
+* kubectl ↔ API server
+
+
+### Core Concepts
+
+### TLS Everywhere
+
+Encrypt control plane traffic.
+
+### Mutual TLS (mTLS)
+
+etcd uses mTLS.
+
+### Certificate Authorities (CA)
+
+Root CA signs cluster certificates.
+
+### kubeadm
+
+Auto-generates required certs.
+
+
+
+### Certificate Types
+
+* Client certificates
+* Server certificates
+* Service account tokens
+* etcd certificates
+
+
+### Security Requirements
+
+* Encrypt data in transit
+* Rotate certificates
+* Protect private keys
+* Use least privilege identities
+
+
+## 7. Connectivity
+
+Connectivity security controls network traffic.
+
+### Network Policies
+
+Restrict:
+
+* Pod-to-pod traffic
+* Namespace communication
+* Ingress/Egress rules
+
+Implements:
+
+* Network segmentation
+* Zero trust networking
+
+### DoS Protection
+
+Mitigations:
+
+* Resource quotas
+* Limit ranges
+* Rate limiting
+* Pod disruption budgets
+
+
+### API Server Protection
+
+* IP allowlists
+* Private endpoints
+* Firewall rules
+* Disable anonymous access
+
+
+## 8. Admission Control
+
+Admission controllers intercept API requests after authentication and authorization but before persistence.
+
+Your notes integrated:
+
+### Types
+
+### Mutating Admission Controllers
+
+* Modify requests
+* Inject defaults
+* Add sidecars
+
+### Validating Admission Controllers
+
+* Approve or reject requests
+
+
+### Built-in Controllers
+
+* NamespaceLifecycle
+* ResourceQuota
+* PodSecurity
+
+
+### Dynamic Controllers (Webhooks)
+
+* Custom policies
+* OPA Gatekeeper
+* Kyverno
+* Sigstore policy-controller
+
+### Security Use Cases
+
+* Block privileged containers
+* Enforce non-root containers
+* Require signed images
+* Enforce resource limits
+* Enforce labels/annotations
+* Enforce SBOM requirement
+
+### Pod Security Admission
+
+Replaces PSP.
+Enforces:
+
+* Restricted
+* Baseline
+* Privileged profiles
+
+
+---
+
+## Compliance and Security Frameworks
+
+### 1.1 CIS Kubernetes Benchmark
+
+**Purpose**
+Provides hardening guidance for Kubernetes components.
+
+**Scope Includes**
+
+* kube-apiserver configuration
+* etcd security
+* kubelet configuration
+* RBAC enforcement
+* Audit logging
+* Network policies
+
+**Example from Platform Security Material**
+The certificate generation process for control plane components (CA, admin, scheduler, controller-manager, kube-proxy) demonstrates enforcing strong authentication via PKI . This aligns with CIS controls requiring TLS and certificate-based auth.
+
+**Key Exam Concepts**
+
+* Disable anonymous auth
+* Enable audit logs
+* Secure etcd with TLS
+* Enforce least privilege via RBAC
+
+Tool:
+
+* `kube-bench`
+
+
+
+### 1.2 NIST SP 800-190
+
+Focuses on container security risks and countermeasures.
+
+Emphasizes:
+
+* Image vulnerability scanning
+* Runtime protection
+* Secure configuration
+* Least privilege
+
+Maps directly to:
+
+* Admission control
+* Image scanning
+* Runtime monitoring
+
+
+### 1.3 PCI DSS (Kubernetes Context)
+
+Relevant when handling cardholder data.
+
+Core controls:
+
+* Network segmentation (Network Policies)
+* Encryption in transit (TLS, mTLS)
+* Encryption at rest
+* Access control (RBAC)
+* Continuous monitoring
+
+
+### 1.4 MITRE ATT&CK for Containers
+
+Framework of adversary techniques.
+
+Examples in Kubernetes:
+
+* Initial access via exposed dashboard
+* Privilege escalation via misconfigured RBAC
+* Lateral movement across namespaces
+* Credential access via Secrets
+
+Use to:
+
+* Map detection controls
+* Build defensive policies
+* Guide observability strategy
+
+
+## Threat Modelling Frameworks
+
+Threat modeling identifies potential risks before deployment.
+
+
+### 2.1 STRIDE Framework
+
+STRIDE categories:
+
+| Threat                 | Kubernetes Example    | Mitigation             |
+| ---------------------- | --------------------- | ---------------------- |
+| Spoofing               | Fake service identity | mTLS, Service Mesh     |
+| Tampering              | Modifying etcd data   | TLS, RBAC              |
+| Repudiation            | No audit trail        | Enable audit logging   |
+| Information Disclosure | Exposed Secrets       | Encryption, RBAC       |
+| Denial of Service      | Resource exhaustion   | Quotas, limits         |
+| Elevation of Privilege | Privileged pods       | Pod Security Admission |
+
+
+
+### Applying STRIDE to Kubernetes
+
+1. **System Decomposition**
+
+   * API Server
+   * etcd
+   * kubelets
+   * Pods
+   * Network layer
+
+2. **Identify Trust Boundaries**
+
+   * Node boundary
+   * Namespace boundary
+   * Control plane vs data plane
+   * Service-to-service communication
+
+3. **Map Threats to Controls**
+
+   * PKI for spoofing
+   * Network Policies for lateral movement
+   * Admission Controllers for privilege escalation
+
+
+## Service Mesh Threat Mitigation 
+
+The Istio architecture shows:
+
+* Certificate Authority within Istiod
+* mTLS between services
+* Policy enforcement via sidecars
+* Audit logging capability 
+
+This mitigates:
+
+* Spoofing
+* Tampering
+* Information Disclosure
+
+Security at depth is explicitly described .
+
+
+
+## 3. Supply Chain Compliance
+
+Ensures software integrity from code to cluster.
+
+
+### 3.1 Core Components
+
+### Artifacts
+
+* Container images
+* Build outputs
+* Helm charts
+
+Must:
+
+* Be scanned
+* Be signed
+* Be immutable
+
+
+### Metadata
+
+* SBOM
+* Build provenance
+* Dependency information
+
+Purpose:
+
+* Verify origin
+* Enable vulnerability tracking
+
+
+### Attestations
+
+Signed metadata proving:
+
+* Build integrity
+* SBOM validity
+* Scan results
+
+Tools:
+
+* Cosign
+* in-toto
+* Sigstore
+
+### Policies
+
+Define deployment requirements:
+
+* Image must be signed
+* No critical vulnerabilities
+* Valid provenance required
+
+Enforced via:
+
+* Admission Controllers
+* OPA Gatekeeper
+* Kyverno
+* Sigstore policy-controller
+
+
+### 3.2 Compliance Framework Alignment
+
+### SLSA (Supply Chain Levels for Software Artifacts)
+
+Ensures:
+
+* Provenance tracking
+* Build integrity
+* Tamper resistance
+
+### SSDF (NIST Secure Software Development Framework)
+
+Integrates security into:
+
+* Development
+* CI/CD
+* Deployment lifecycle
+
+### CIS Benchmark
+
+Enforces:
+
+* Secure configuration
+* RBAC
+* Logging
+* Network isolation
+
+
+### 3.3 Compliance Best Practices
+
+* Network segmentation via NetworkPolicy
+* RBAC enforcement
+* mTLS encryption
+* Continuous monitoring
+* Immutable images
+* Disable privilege escalation
+
+
+### 4. Automation and Tooling
+
+Automation ensures consistent enforcement.
+
+
+
+### 4.1 RBAC Automation
+
+* Define roles
+* Bind users/groups
+* Audit permissions regularly
+
+
+### 4.2 Network Policy Automation
+
+* Define ingress/egress restrictions
+* Isolate namespaces
+* Apply zero-trust networking
+
+
+### 4.3 Secrets Management
+
+* Store in Kubernetes Secrets
+* Encrypt at rest (etcd encryption)
+* Restrict access via RBAC
+* Avoid hardcoding in images
+
+
+### 4.4 Immutable Infrastructure
+
+* Read-only root filesystem
+* Disable privileged containers
+* Disallow `latest` tag
+* Enforce image signing
+
+### 4.5 Vulnerability Scanning
+
+* Integrate into CI/CD
+* Scan images before push
+* Scan at runtime
+* Patch promptly
+
+### 4.6 PKI Automation 
+
+The certificate workflow shown includes:
+
+* CA generation via OpenSSL 
+* Client certificates for control plane components 
+* API server SAN configuration for alternate DNS names 
+* etcd peer certificates for HA clusters 
+
+This demonstrates:
+
+* Strong identity-based security
+* Mutual TLS
+* Trust chain enforcement
+
+These directly map to:
+
+* Compliance controls
+* STRIDE spoofing mitigation
+* Zero trust networking
